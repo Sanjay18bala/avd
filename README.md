@@ -31,6 +31,3 @@ Files are saved to `~/Downloads`.
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/uninstall.sh | bash
 ```
-
-This removes `avd` and its completion script, and also strips the tab
-completion block it added to your `~/.zshrc` or `~/.bashrc`.
