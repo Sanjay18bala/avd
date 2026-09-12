@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+  cat <<'EOF'
+avd - download video/audio at the highest available quality
+
+Usage:
+  avd -v <url>   Download video (YouTube, TikTok, Instagram Reels, and
+                 anything else yt-dlp supports)
+  avd -a <url>   Download audio only, as mp3
+  avd -h         Show this help
+
+Files are saved to ~/Downloads.
+EOF
+}
+
+if ! command -v yt-dlp >/dev/null 2>&1; then
+  echo "error: yt-dlp is not installed. Run install.sh from https://github.com/Sanjay18bala/avd, or 'brew install yt-dlp'." >&2
+  exit 1
+fi
+
+mode=""
+url=""
+
+while getopts ":v:a:h" opt; do
+  case "$opt" in
+    v) mode="video"; url="$OPTARG" ;;
+    a) mode="audio"; url="$OPTARG" ;;
+    h) usage; exit 0 ;;
+    :) echo "error: -$OPTARG requires a URL argument" >&2; usage; exit 1 ;;
+    \?) echo "error: unknown option -$OPTARG" >&2; usage; exit 1 ;;
+  esac
+done
+
+if [[ -z "$mode" ]]; then
+  usage
+  exit 1
+fi
+
+mkdir -p "$HOME/Downloads"
+output_template="$HOME/Downloads/%(title)s.%(ext)s"
+
+if [[ "$mode" == "video" ]]; then
+  yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "$output_template" "$url"
+else
+  yt-dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
+fi
