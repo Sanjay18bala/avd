@@ -148,6 +148,29 @@ if [[ -t 0 && -t 1 ]]; then
   chosen=$(select_quality "$mode" "$url") || chosen=""
 fi
 
+resolve_unique_path() {
+  local format_sel="$1" template="$2" url="$3" known_ext="$4"
+  local base
+  base=$(yt-dlp -f "$format_sel" --skip-download -q --no-warnings --print filename -o "$template" "$url" 2>/dev/null) || return 1
+  [[ -z "$base" ]] && return 1
+
+  base="${base%.*}.$known_ext"
+
+  if [[ ! -e "$base" ]]; then
+    echo "$base"
+    return 0
+  fi
+
+  local dir stem n=1
+  dir=$(dirname "$base")
+  stem=$(basename "$base" ".$known_ext")
+
+  while [[ -e "$dir/$stem ($n).$known_ext" ]]; do
+    n=$((n + 1))
+  done
+  echo "$dir/$stem ($n).$known_ext"
+}
+
 mkdir -p "$HOME/Downloads"
 video_output_template="$HOME/Downloads/%(title)s [%(height)sp] [%(id)s].%(ext)s"
 audio_output_template="$HOME/Downloads/%(title)s [%(abr)dk] [%(id)s].%(ext)s"
@@ -181,12 +204,14 @@ if [[ "$mode" == "video" ]]; then
   else
     video_format="bestvideo+bestaudio/best"
   fi
-  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$video_output_template" "$url"
+  final_path=$(resolve_unique_path "$video_format" "$video_output_template" "$url" "mp4") || final_path="$video_output_template"
+  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$final_path" "$url"
 else
   if [[ -n "$chosen" ]]; then
     audio_format="bestaudio[abr<=$chosen]/bestaudio"
   else
     audio_format="bestaudio/best"
   fi
-  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$audio_output_template" "$url"
+  final_path=$(resolve_unique_path "$audio_format" "$audio_output_template" "$url" "mp3") || final_path="$audio_output_template"
+  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$final_path" "$url"
 fi
