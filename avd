@@ -108,14 +108,15 @@ arrow_menu() {
   stty -echo -icanon min 1 time 0
 
   _arrow_menu_draw() {
-    local i
+    local i line=""
     for i in "${!options[@]}"; do
       if [[ $i -eq $sel ]]; then
-        printf "\033[7m> %s\033[0m\033[K\n" "${options[$i]}" >&2
+        line+=$'\033[7m'"${options[$i]}"$'\033[0m'"   "
       else
-        printf "  %s\033[K\n" "${options[$i]}" >&2
+        line+="${options[$i]}   "
       fi
     done
+    printf "\r\033[K%s" "$line" >&2
   }
 
   _arrow_menu_draw
@@ -127,14 +128,14 @@ arrow_menu() {
       key+="$rest"
     fi
     case "$key" in
-      $'\x1b[A') (( sel = (sel - 1 + n) % n )) ;;
-      $'\x1b[B') (( sel = (sel + 1) % n )) ;;
+      $'\x1b[D'|$'\x1b[A') (( sel = (sel - 1 + n) % n )) ;;
+      $'\x1b[C'|$'\x1b[B') (( sel = (sel + 1) % n )) ;;
       ''|$'\n'|$'\r') break ;;
     esac
-    printf "\033[%dA" "$n" >&2
     _arrow_menu_draw
   done
 
+  printf "\n" >&2
   stty "$old_stty"
   trap - INT TERM
   echo "$sel"
@@ -146,7 +147,8 @@ if [[ -t 0 && -t 1 ]]; then
 fi
 
 mkdir -p "$HOME/Downloads"
-output_template="$HOME/Downloads/%(title)s.%(ext)s"
+video_output_template="$HOME/Downloads/%(title)s [%(height)sp] [%(id)s].%(ext)s"
+audio_output_template="$HOME/Downloads/%(title)s [%(abr)dk] [%(id)s].%(ext)s"
 
 progress_opts=(-q --no-warnings --progress --newline
   --progress-template "download:P|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s")
@@ -177,12 +179,12 @@ if [[ "$mode" == "video" ]]; then
   else
     video_format="bestvideo+bestaudio/best"
   fi
-  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$output_template" "$url"
+  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$video_output_template" "$url"
 else
   if [[ -n "$chosen" ]]; then
     audio_format="bestaudio[abr<=$chosen]/bestaudio"
   else
     audio_format="bestaudio/best"
   fi
-  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
+  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$audio_output_template" "$url"
 fi
