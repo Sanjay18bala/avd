@@ -37,12 +37,16 @@ mkdir -p "$INSTALL_DIR"
 
 if [[ -f "$(dirname "$0")/avd" ]]; then
   cp "$(dirname "$0")/avd" "$INSTALL_DIR/avd"
+  cp "$(dirname "$0")/avd-completion.sh" "$INSTALL_DIR/avd-completion.sh"
 else
   curl -fsSL "$REPO_RAW/avd" -o "$INSTALL_DIR/avd"
+  curl -fsSL "$REPO_RAW/avd-completion.sh" -o "$INSTALL_DIR/avd-completion.sh"
 fi
 chmod +x "$INSTALL_DIR/avd"
 
 echo "avd installed to $INSTALL_DIR/avd"
+echo "For tab completion, add this to your ~/.zshrc or ~/.bashrc:"
+echo "  source \"$INSTALL_DIR/avd-completion.sh\""
 
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;

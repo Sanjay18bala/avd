@@ -49,7 +49,7 @@ fi
 mkdir -p "$HOME/Downloads"
 output_template="$HOME/Downloads/%(title)s.%(ext)s"
 
-progress_opts=(-q --no-warnings --progress
+progress_opts=(-q --no-warnings --progress --newline
   --progress-template "download:P|%(progress._percent_str)s|%(progress._speed_str)s|%(progress._eta_str)s")
 
 spinner_frames=$'⠋ ⠙ ⠹ ⠸ ⠼ ⠴ ⠦ ⠧ ⠇ ⠏'

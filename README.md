@@ -13,6 +13,13 @@ curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/install.sh | 
 This installs `yt-dlp` and `ffmpeg` (via Homebrew if available, otherwise
 pip/apt fallbacks) and puts `avd` in `~/.local/bin`.
 
+For tab completion of `avd`'s flags, add the line the installer prints to
+your `~/.zshrc` or `~/.bashrc`, then open a new terminal:
+
+```sh
+source "$HOME/.local/bin/avd-completion.sh"
+```
+
 ## Usage
 
 ```sh
