@@ -11,9 +11,7 @@ curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/install.sh | 
 ```
 
 This installs `yt-dlp` and `ffmpeg` (via Homebrew if available, otherwise
-pip/apt fallbacks), puts `avd` in `~/.local/bin`, and wires up tab
-completion for `avd`'s flags in your `~/.zshrc` or `~/.bashrc`. Open a new
-terminal afterwards to pick it up.
+pip/apt fallbacks) and puts `avd` in `~/.local/bin`.
 
 ## Usage
 
@@ -29,5 +27,5 @@ Files are saved to `~/Downloads`.
 ## Uninstall
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/uninstall.sh | bash
+rm -f ~/.local/bin/avd
 ```
