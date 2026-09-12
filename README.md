@@ -25,3 +25,12 @@ avd -v "https://www.instagram.com/reel/..."
 ```
 
 Files are saved to `~/Downloads`.
+
+## Uninstall
+
+```sh
+rm -f ~/.local/bin/avd ~/.local/bin/avd-completion.sh
+```
+
+Then remove the `# avd tab completion` block (and the two lines under it)
+from your `~/.zshrc` or `~/.bashrc`.
