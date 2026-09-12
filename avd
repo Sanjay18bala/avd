@@ -91,9 +91,12 @@ PYEOF
   done <<< "$parsed"
   labels[0]="${labels[0]} (highest)"
 
-  echo "Available qualities (use arrow keys, Enter to select):" >&2
+  echo "" >&2
+  echo "Available qualities (Up/Down arrows, Enter to select):" >&2
+  echo "" >&2
   local idx
   idx=$(arrow_menu "${labels[@]}")
+  echo "" >&2
   echo "${values[$idx]}"
 }
 
