@@ -49,8 +49,11 @@ fi
 mkdir -p "$HOME/Downloads"
 output_template="$HOME/Downloads/%(title)s.%(ext)s"
 
+progress_opts=(-q --no-warnings --progress
+  --progress-template "download:  %(progress._percent_str)s  %(progress._speed_str)s  eta %(progress._eta_str)s")
+
 if [[ "$mode" == "video" ]]; then
-  yt-dlp -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "$output_template" "$url"
+  yt-dlp "${progress_opts[@]}" -f "bestvideo+bestaudio/best" --merge-output-format mp4 -o "$output_template" "$url"
 else
-  yt-dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
+  yt-dlp "${progress_opts[@]}" -f "bestaudio/best" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
 fi
