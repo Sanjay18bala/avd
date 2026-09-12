@@ -45,8 +45,25 @@ fi
 chmod +x "$INSTALL_DIR/avd"
 
 echo "avd installed to $INSTALL_DIR/avd"
-echo "For tab completion, add this to your ~/.zshrc or ~/.bashrc:"
-echo "  source \"$INSTALL_DIR/avd-completion.sh\""
+
+completion_line="source \"$INSTALL_DIR/avd-completion.sh\""
+case "${SHELL:-}" in
+  */zsh) rc_file="$HOME/.zshrc" ;;
+  */bash) rc_file="$HOME/.bashrc" ;;
+  *) rc_file="" ;;
+esac
+
+if [[ -n "$rc_file" ]]; then
+  if [[ -f "$rc_file" ]] && grep -qF "avd-completion.sh" "$rc_file"; then
+    :
+  else
+    printf '\n# avd tab completion\n%s\n' "$completion_line" >> "$rc_file"
+    echo "Added tab completion to $rc_file (restart your terminal to use it)"
+  fi
+else
+  echo "For tab completion, add this to your shell rc file:"
+  echo "  $completion_line"
+fi
 
 case ":$PATH:" in
   *":$INSTALL_DIR:"*) ;;
