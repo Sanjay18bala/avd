@@ -29,8 +29,8 @@ Files are saved to `~/Downloads`.
 ## Uninstall
 
 ```sh
-rm -f ~/.local/bin/avd ~/.local/bin/avd-completion.sh
+curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/uninstall.sh | bash
 ```
 
-Then remove the `# avd tab completion` block (and the two lines under it)
-from your `~/.zshrc` or `~/.bashrc`.
+This removes `avd` and its completion script, and also strips the tab
+completion block it added to your `~/.zshrc` or `~/.bashrc`.
