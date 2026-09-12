@@ -89,32 +89,55 @@ PYEOF
     values+=("$value")
     labels+=("$label")
   done <<< "$parsed"
-  labels[0]="${labels[0]} [default]"
+  labels[0]="${labels[0]} (highest)"
 
-  echo "Available qualities:" >&2
-  local i=1
-  for label in "${labels[@]}"; do
-    echo "  $i) $label" >&2
-    i=$((i + 1))
-  done
+  echo "Available qualities (use arrow keys, Enter to select):" >&2
+  local idx
+  idx=$(arrow_menu "${labels[@]}")
+  echo "${values[$idx]}"
+}
 
-  local choice
+arrow_menu() {
+  local options=("$@")
+  local n=${#options[@]}
+  local sel=0
+
+  local old_stty
+  old_stty=$(stty -g)
+  trap 'stty "$old_stty" 2>/dev/null; exit 130' INT TERM
+  stty -echo -icanon min 1 time 0
+
+  _arrow_menu_draw() {
+    local i
+    for i in "${!options[@]}"; do
+      if [[ $i -eq $sel ]]; then
+        printf "\033[7m> %s\033[0m\033[K\n" "${options[$i]}" >&2
+      else
+        printf "  %s\033[K\n" "${options[$i]}" >&2
+      fi
+    done
+  }
+
+  _arrow_menu_draw
+  local key rest
   while true; do
-    if ! read -r -p "Select [1-${#values[@]}, Enter for default]: " choice; then
-      choice=1
-      break
+    IFS= read -rsn1 key
+    if [[ "$key" == $'\x1b' ]]; then
+      IFS= read -rsn2 -t 1 rest
+      key+="$rest"
     fi
-    if [[ -z "$choice" ]]; then
-      choice=1
-      break
-    elif [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#values[@]} )); then
-      break
-    else
-      echo "Invalid choice." >&2
-    fi
+    case "$key" in
+      $'\x1b[A') (( sel = (sel - 1 + n) % n )) ;;
+      $'\x1b[B') (( sel = (sel + 1) % n )) ;;
+      ''|$'\n'|$'\r') break ;;
+    esac
+    printf "\033[%dA" "$n" >&2
+    _arrow_menu_draw
   done
 
-  echo "${values[$((choice - 1))]}"
+  stty "$old_stty"
+  trap - INT TERM
+  echo "$sel"
 }
 
 chosen=""
