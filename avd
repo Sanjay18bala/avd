@@ -108,15 +108,14 @@ arrow_menu() {
   stty -echo -icanon min 1 time 0
 
   _arrow_menu_draw() {
-    local i line=""
+    local i
     for i in "${!options[@]}"; do
       if [[ $i -eq $sel ]]; then
-        line+=$'\033[7m'"${options[$i]}"$'\033[0m'"   "
+        printf "\033[7m> %s\033[0m\033[K\n" "${options[$i]}" >&2
       else
-        line+="${options[$i]}   "
+        printf "  %s\033[K\n" "${options[$i]}" >&2
       fi
     done
-    printf "\r\033[K%s" "$line" >&2
   }
 
   _arrow_menu_draw
@@ -128,14 +127,14 @@ arrow_menu() {
       key+="$rest"
     fi
     case "$key" in
-      $'\x1b[D'|$'\x1b[A') (( sel = (sel - 1 + n) % n )) ;;
-      $'\x1b[C'|$'\x1b[B') (( sel = (sel + 1) % n )) ;;
+      $'\x1b[A') (( sel = (sel - 1 + n) % n )) ;;
+      $'\x1b[B') (( sel = (sel + 1) % n )) ;;
       ''|$'\n'|$'\r') break ;;
     esac
+    printf "\033[%dA" "$n" >&2
     _arrow_menu_draw
   done
 
-  printf "\n" >&2
   stty "$old_stty"
   trap - INT TERM
   echo "$sel"
