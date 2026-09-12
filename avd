@@ -11,6 +11,7 @@ Usage:
   avd -v <url>   Download video (YouTube, TikTok, Instagram Reels, and
                  anything else yt-dlp supports)
   avd -a <url>   Download audio only, as mp3
+                 (in an interactive terminal, prompts for quality)
   avd -h, --help       Show this help
   avd --version        Show version
 
@@ -46,6 +47,81 @@ if [[ -z "$mode" ]]; then
   exit 1
 fi
 
+select_quality() {
+  local mode="$1" url="$2"
+  echo "Fetching available qualities..." >&2
+
+  local json
+  json=$(yt-dlp -j --skip-download -q --no-warnings "$url" 2>/dev/null) || return 1
+
+  local py_prog
+  py_prog=$(cat <<'PYEOF'
+import json, sys
+
+mode = sys.argv[1]
+data = json.load(sys.stdin)
+formats = data.get('formats') or []
+
+if mode == 'video':
+    vals = sorted({f.get('height') for f in formats
+                   if f.get('vcodec') not in (None, 'none') and f.get('height')},
+                  reverse=True)
+    for h in vals[:4]:
+        label = f"{h}p" + (" (4K)" if h >= 2160 else "")
+        print(f"{h}|{label}")
+else:
+    vals = sorted({round(f.get('abr')) for f in formats
+                   if f.get('vcodec') in (None, 'none')
+                   and f.get('acodec') not in (None, 'none')
+                   and f.get('abr')},
+                  reverse=True)
+    for a in vals[:4]:
+        print(f"{a}|{a}kbps")
+PYEOF
+  )
+
+  local parsed
+  parsed=$(printf '%s' "$json" | python3 -c "$py_prog" "$mode")
+  [[ -z "$parsed" ]] && return 1
+
+  local values=() labels=()
+  while IFS='|' read -r value label; do
+    values+=("$value")
+    labels+=("$label")
+  done <<< "$parsed"
+  labels[0]="${labels[0]} [default]"
+
+  echo "Available qualities:" >&2
+  local i=1
+  for label in "${labels[@]}"; do
+    echo "  $i) $label" >&2
+    i=$((i + 1))
+  done
+
+  local choice
+  while true; do
+    if ! read -r -p "Select [1-${#values[@]}, Enter for default]: " choice; then
+      choice=1
+      break
+    fi
+    if [[ -z "$choice" ]]; then
+      choice=1
+      break
+    elif [[ "$choice" =~ ^[0-9]+$ ]] && (( choice >= 1 && choice <= ${#values[@]} )); then
+      break
+    else
+      echo "Invalid choice." >&2
+    fi
+  done
+
+  echo "${values[$((choice - 1))]}"
+}
+
+chosen=""
+if [[ -t 0 && -t 1 ]]; then
+  chosen=$(select_quality "$mode" "$url") || chosen=""
+fi
+
 mkdir -p "$HOME/Downloads"
 output_template="$HOME/Downloads/%(title)s.%(ext)s"
 
@@ -73,7 +149,17 @@ run_yt_dlp() {
 }
 
 if [[ "$mode" == "video" ]]; then
-  run_yt_dlp -f "bestvideo+bestaudio/best" --recode-video mp4 -o "$output_template" "$url"
+  if [[ -n "$chosen" ]]; then
+    video_format="bestvideo[height<=$chosen]+bestaudio/best[height<=$chosen]"
+  else
+    video_format="bestvideo+bestaudio/best"
+  fi
+  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$output_template" "$url"
 else
-  run_yt_dlp -f "bestaudio/best" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
+  if [[ -n "$chosen" ]]; then
+    audio_format="bestaudio[abr<=$chosen]/bestaudio"
+  else
+    audio_format="bestaudio/best"
+  fi
+  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$output_template" "$url"
 fi
