@@ -8,12 +8,24 @@ knows about works here for free.
 
 ## Install
 
+macOS / Linux:
+
 ```sh
 curl -fsSL https://raw.githubusercontent.com/Sanjay18bala/avd/main/install.sh | bash
 ```
 
 This installs `yt-dlp` and `ffmpeg` (via Homebrew if available, otherwise
 pip/apt fallbacks) and puts `avd` in `~/.local/bin`.
+
+Windows (PowerShell):
+
+```powershell
+irm https://raw.githubusercontent.com/Sanjay18bala/avd/main/install.ps1 | iex
+```
+
+This installs `yt-dlp` and `ffmpeg` (via winget if available, otherwise
+choco/pip fallbacks) and puts `avd` in `%USERPROFILE%\bin`, usable from both
+PowerShell and cmd.exe.
 
 ## Usage
 
@@ -28,6 +40,14 @@ Files save to `~/Downloads`.
 
 ## Uninstall
 
+macOS / Linux:
+
 ```sh
 rm -f ~/.local/bin/avd
+```
+
+Windows:
+
+```powershell
+Remove-Item "$HOME\bin\avd.ps1", "$HOME\bin\avd.cmd"
 ```
