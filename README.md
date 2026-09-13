@@ -1,8 +1,10 @@
 # avd
 
-Download video or audio at the highest available quality from YouTube,
-TikTok, Instagram Reels, and anywhere else [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-supports. `avd` is a thin CLI wrapper around yt-dlp + ffmpeg.
+`avd` downloads video or audio at the highest available quality from
+YouTube, TikTok, Instagram Reels, and anywhere else
+[yt-dlp](https://github.com/yt-dlp/yt-dlp) supports. It's a thin CLI wrapper
+around yt-dlp + ffmpeg: it has no per-platform logic, so any site yt-dlp
+knows about works here for free.
 
 ## Install
 
@@ -16,13 +18,13 @@ pip/apt fallbacks) and puts `avd` in `~/.local/bin`.
 ## Usage
 
 ```sh
-avd -v "https://www.youtube.com/watch?v=..."      # highest quality video
-avd -a "https://www.youtube.com/watch?v=..."      # highest quality audio (mp3)
+avd -v "https://www.youtube.com/watch?v=..."      # video
+avd -a "https://www.youtube.com/watch?v=..."      # audio only, extracted to mp3
 avd -v "https://www.tiktok.com/@user/video/..."
 avd -v "https://www.instagram.com/reel/..."
 ```
 
-Files are saved to `~/Downloads`.
+Files save to `~/Downloads`.
 
 ## Uninstall
 
