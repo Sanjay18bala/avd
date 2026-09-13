@@ -13,6 +13,9 @@ ensure_yt_dlp() {
   if command -v brew >/dev/null 2>&1; then
     brew install yt-dlp
   else
+    if ! command -v pip3 >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
+      sudo apt-get update && sudo apt-get install -y python3-pip
+    fi
     pip3 install --user -U yt-dlp
   fi
 }
