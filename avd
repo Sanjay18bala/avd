@@ -12,6 +12,8 @@ Usage:
                  anything else yt-dlp supports)
   avd -a <url>   Download audio only, as mp3
                  (in an interactive terminal, prompts for quality)
+  avd -a "<search terms>"   Non-URL input searches YouTube and lets you
+                 pick from the top 5 results (works with -v too)
   avd -h, --help       Show this help
   avd --version        Show version
 
@@ -142,6 +144,31 @@ arrow_menu() {
   trap - INT TERM
   echo "$sel"
 }
+
+if [[ ! "$url" =~ ^[a-zA-Z][a-zA-Z0-9+.-]*:// ]]; then
+  if [[ -t 0 && -t 1 ]]; then
+    echo "Searching YouTube for \"$url\"..." >&2
+    results=$(yt-dlp "ytsearch5:$url" --flat-playlist -q --no-warnings \
+      --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" 2>/dev/null) || true
+    if [[ -z "$results" ]]; then
+      echo "error: no results for \"$url\"" >&2
+      exit 1
+    fi
+    ids=() labels=()
+    while IFS='|' read -r id label; do
+      ids+=("$id")
+      labels+=("$label")
+    done <<< "$results"
+    echo "" >&2
+    echo "Results (Up/Down arrows, Enter to select):" >&2
+    echo "" >&2
+    idx=$(arrow_menu "${labels[@]}")
+    echo "" >&2
+    url="https://www.youtube.com/watch?v=${ids[$idx]}"
+  else
+    url="ytsearch1:$url"
+  fi
+fi
 
 chosen=""
 if [[ -t 0 && -t 1 ]]; then

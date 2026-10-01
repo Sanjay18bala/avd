@@ -12,6 +12,8 @@ Usage:
                  anything else yt-dlp supports)
   avd -a <url>   Download audio only, as mp3
                  (in an interactive terminal, prompts for quality)
+  avd -a "<search terms>"   Non-URL input searches YouTube and lets you
+                 pick from the top 5 results (works with -v too)
   avd -h, --help       Show this help
   avd --version        Show version
 
@@ -122,8 +124,31 @@ function Resolve-UniquePath {
     return (Join-Path $dir "$stem ($n).$KnownExt")
 }
 
-$chosen = $null
 $interactive = [Environment]::UserInteractive -and -not [Console]::IsOutputRedirected -and -not [Console]::IsInputRedirected
+
+if ($url -notmatch '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
+    if ($interactive) {
+        Write-Host "Searching YouTube for `"$url`"..."
+        $results = @(yt-dlp "ytsearch5:$url" --flat-playlist -q --no-warnings `
+            --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" 2>$null)
+        if ($results.Count -eq 0 -or -not $results[0]) {
+            Write-Error "no results for `"$url`""
+            exit 1
+        }
+        $ids = @($results | ForEach-Object { $_.Split('|', 2)[0] })
+        $labels = @($results | ForEach-Object { $_.Split('|', 2)[1] })
+        Write-Host ""
+        Write-Host "Results (Up/Down arrows, Enter to select):"
+        Write-Host ""
+        $idx = Show-ArrowMenu -Options $labels
+        Write-Host ""
+        $url = "https://www.youtube.com/watch?v=$($ids[$idx])"
+    } else {
+        $url = "ytsearch1:$url"
+    }
+}
+
+$chosen = $null
 if ($interactive) {
     $chosen = Select-Quality -Mode $mode -Url $url
 }

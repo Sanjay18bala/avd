@@ -34,6 +34,8 @@ avd -v "https://www.youtube.com/watch?v=..."      # video
 avd -a "https://www.youtube.com/watch?v=..."      # audio only, extracted to mp3
 avd -v "https://www.tiktok.com/@user/video/..."
 avd -v "https://www.instagram.com/reel/..."
+avd -a "Human Nature"                             # not a URL: searches YouTube,
+                                                  # pick from the top 5 results
 ```
 
 Files save to `~/Downloads`.
