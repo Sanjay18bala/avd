@@ -38,8 +38,10 @@ ensure_ffmpeg
 
 mkdir -p "$INSTALL_DIR"
 
-if [[ -f "$(dirname "$0")/avd" ]]; then
-  cp "$(dirname "$0")/avd" "$INSTALL_DIR/avd"
+# BASH_SOURCE is empty under `curl | bash`; only then is there no local copy to prefer.
+src="${BASH_SOURCE[0]:-}"
+if [[ -n "$src" && -f "$(dirname "$src")/avd" ]]; then
+  cp "$(dirname "$src")/avd" "$INSTALL_DIR/avd"
 else
   curl -fsSL "$REPO_RAW/avd" -o "$INSTALL_DIR/avd"
 fi

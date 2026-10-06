@@ -54,7 +54,7 @@ select_quality() {
   echo "Fetching available qualities..." >&2
 
   local json
-  json=$(yt-dlp -j --skip-download -q --no-warnings "$url" 2>/dev/null) || return 1
+  json=$(yt-dlp -j --skip-download -q --no-warnings -- "$url" 2>/dev/null) || return 1
 
   local py_prog
   py_prog=$(cat <<'PYEOF'
@@ -148,8 +148,8 @@ arrow_menu() {
 if [[ ! "$url" =~ ^[a-zA-Z][a-zA-Z0-9+.-]*:// ]]; then
   if [[ -t 0 && -t 1 ]]; then
     echo "Searching YouTube for \"$url\"..." >&2
-    results=$(yt-dlp "ytsearch5:$url" --flat-playlist -q --no-warnings \
-      --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" 2>/dev/null) || true
+    results=$(yt-dlp --flat-playlist -q --no-warnings \
+      --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" -- "ytsearch5:$url" 2>/dev/null) || true
     if [[ -z "$results" ]]; then
       echo "error: no results for \"$url\"" >&2
       exit 1
@@ -178,7 +178,7 @@ fi
 resolve_unique_path() {
   local format_sel="$1" template="$2" url="$3" known_ext="$4"
   local base
-  base=$(yt-dlp -f "$format_sel" --skip-download -q --no-warnings --print filename -o "$template" "$url" 2>/dev/null) || return 1
+  base=$(yt-dlp -f "$format_sel" --skip-download -q --no-warnings --print filename -o "$template" -- "$url" 2>/dev/null) || return 1
   [[ -z "$base" ]] && return 1
 
   base="${base%.*}.$known_ext"
@@ -232,7 +232,7 @@ if [[ "$mode" == "video" ]]; then
     video_format="bestvideo+bestaudio/best"
   fi
   final_path=$(resolve_unique_path "$video_format" "$video_output_template" "$url" "mp4") || final_path="$video_output_template"
-  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$final_path" "$url"
+  run_yt_dlp -f "$video_format" --recode-video mp4 -o "$final_path" -- "$url"
 else
   if [[ -n "$chosen" ]]; then
     audio_format="bestaudio[abr<=$chosen]/bestaudio"
@@ -240,5 +240,5 @@ else
     audio_format="bestaudio/best"
   fi
   final_path=$(resolve_unique_path "$audio_format" "$audio_output_template" "$url" "mp3") || final_path="$audio_output_template"
-  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$final_path" "$url"
+  run_yt_dlp -f "$audio_format" -x --audio-format mp3 --audio-quality 0 -o "$final_path" -- "$url"
 fi

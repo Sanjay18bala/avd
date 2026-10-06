@@ -36,9 +36,9 @@ Ensure-Ffmpeg
 
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
-$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$localAvd = Join-Path $scriptDir "avd.ps1"
-if (Test-Path $localAvd) {
+# $PSCommandPath is empty under `irm | iex`; only then is there no local copy to prefer.
+$localAvd = if ($PSCommandPath) { Join-Path (Split-Path -Parent $PSCommandPath) "avd.ps1" }
+if ($localAvd -and (Test-Path $localAvd)) {
     Copy-Item $localAvd (Join-Path $InstallDir "avd.ps1") -Force
 } else {
     Invoke-WebRequest -Uri "$RepoRaw/avd.ps1" -OutFile (Join-Path $InstallDir "avd.ps1")

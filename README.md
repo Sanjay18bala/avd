@@ -40,6 +40,9 @@ avd -a "Human Nature"                             # not a URL: searches YouTube,
 
 Files save to `~/Downloads`.
 
+You're responsible for what you download: respect copyright and each site's
+terms of service.
+
 ## Uninstall
 
 macOS / Linux:

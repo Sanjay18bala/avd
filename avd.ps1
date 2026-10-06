@@ -80,7 +80,7 @@ function Select-Quality {
 
     Write-Host "Fetching available qualities..."
 
-    $json = yt-dlp -j --skip-download -q --no-warnings $Url 2>$null
+    $json = yt-dlp -j --skip-download -q --no-warnings '--' $Url 2>$null
     if (-not $json) { return $null }
 
     $formats = ($json | ConvertFrom-Json).formats
@@ -111,7 +111,7 @@ function Select-Quality {
 function Resolve-UniquePath {
     param([string]$FormatSel, [string]$Template, [string]$Url, [string]$KnownExt)
 
-    $base = yt-dlp -f $FormatSel --skip-download -q --no-warnings --print filename -o $Template $Url 2>$null
+    $base = yt-dlp -f $FormatSel --skip-download -q --no-warnings --print filename -o $Template '--' $Url 2>$null
     if (-not $base) { return $null }
 
     $base = [System.IO.Path]::ChangeExtension($base, $KnownExt)
@@ -129,8 +129,8 @@ $interactive = [Environment]::UserInteractive -and -not [Console]::IsOutputRedir
 if ($url -notmatch '^[a-zA-Z][a-zA-Z0-9+.-]*://') {
     if ($interactive) {
         Write-Host "Searching YouTube for `"$url`"..."
-        $results = @(yt-dlp "ytsearch5:$url" --flat-playlist -q --no-warnings `
-            --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" 2>$null)
+        $results = @(yt-dlp --flat-playlist -q --no-warnings `
+            --print "%(id)s|%(title)s - %(channel)s [%(duration_string)s]" '--' "ytsearch5:$url" 2>$null)
         if ($results.Count -eq 0 -or -not $results[0]) {
             Write-Error "no results for `"$url`""
             exit 1
@@ -163,10 +163,10 @@ if ($mode -eq 'video') {
     $videoFormat = if ($chosen) { "bestvideo[height<=$chosen]+bestaudio/best[height<=$chosen]" } else { "bestvideo+bestaudio/best" }
     $finalPath = Resolve-UniquePath -FormatSel $videoFormat -Template $videoTemplate -Url $url -KnownExt 'mp4'
     if (-not $finalPath) { $finalPath = $videoTemplate }
-    yt-dlp -f $videoFormat --recode-video mp4 -o $finalPath --progress --newline $url
+    yt-dlp -f $videoFormat --recode-video mp4 -o $finalPath --progress --newline '--' $url
 } else {
     $audioFormat = if ($chosen) { "bestaudio[abr<=$chosen]/bestaudio" } else { "bestaudio/best" }
     $finalPath = Resolve-UniquePath -FormatSel $audioFormat -Template $audioTemplate -Url $url -KnownExt 'mp3'
     if (-not $finalPath) { $finalPath = $audioTemplate }
-    yt-dlp -f $audioFormat -x --audio-format mp3 --audio-quality 0 -o $finalPath --progress --newline $url
+    yt-dlp -f $audioFormat -x --audio-format mp3 --audio-quality 0 -o $finalPath --progress --newline '--' $url
 }
